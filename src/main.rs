@@ -44,7 +44,10 @@ impl Object {
 
     fn copy_to(&self, destination: &Path) -> io::Result<()> {
         if self.absolute_path == destination {
-            return Err(io::Error::new(io::ErrorKind::Other, "attempt to copy to self"));
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "attempt to copy to self",
+            ));
         }
 
         Ok({
@@ -92,6 +95,10 @@ fn main() {
 fn run(opts: &Opts) -> io::Result<()> {
     let source_entries = WalkDir::new(&opts.source).into_iter().filter_map(|entry| {
         let entry = entry.ok()?;
+        if !opts.include_hidden_files && entry.file_name().to_string_lossy().starts_with('.') {
+            return None;
+        }
+
         Object::new(&opts.source, entry).ok()
     });
 
@@ -121,11 +128,10 @@ fn run(opts: &Opts) -> io::Result<()> {
                     BadCopy::new(object.absolute_path, destination),
                 ));
             }
-            
+
             println!("copied {}", object.relative_path.display());
         }
     }
 
     Ok(())
-
 }
