@@ -121,6 +121,9 @@ fn run(opts: &Opts) -> io::Result<()> {
             let source_imprint = Imprint::new(&object.absolute_path)?;
             if destination.exists() && source_imprint == Imprint::new(&destination)? {
                 println!("exists {}", object.relative_path.display());
+                if opts.remove_copied_files {
+                    fs::remove_file(&object.absolute_path)?;
+                }
                 continue;
             }
 
