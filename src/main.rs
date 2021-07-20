@@ -17,6 +17,10 @@ struct Opts {
     /// copy hidden files (starting with .dot)
     #[structopt(short = "h", long = "hidden")]
     include_hidden_files: bool,
+
+    /// remove moved files
+    #[structopt(short = "r", long = "remove")]
+    remove_copied_files: bool,
 }
 
 impl Opts {
@@ -130,6 +134,10 @@ fn run(opts: &Opts) -> io::Result<()> {
             }
 
             println!("copied {}", object.relative_path.display());
+
+            if opts.remove_copied_files {
+                fs::remove_file(&object.absolute_path)?;
+            }
         }
     }
 
