@@ -43,6 +43,10 @@ impl Object {
     }
 
     fn copy_to(&self, destination: &Path) -> io::Result<()> {
+        if self.absolute_path == destination {
+            return Err(io::Error::new(io::ErrorKind::Other, "attempt to copy to self"));
+        }
+
         Ok({
             fs::copy(&self.absolute_path, destination)?;
         })
@@ -96,7 +100,8 @@ fn run(opts: &Opts) -> io::Result<()> {
 
         if object.file_type.is_dir() {
             if !destination.exists() {
-                fs::create_dir_all(destination)?;
+                fs::create_dir_all(&destination)?;
+                println!("created {}", object.relative_path.display());
             }
             continue;
         }
@@ -104,6 +109,7 @@ fn run(opts: &Opts) -> io::Result<()> {
         if object.file_type.is_file() {
             let source_imprint = Imprint::new(&object.absolute_path)?;
             if destination.exists() && source_imprint == Imprint::new(&destination)? {
+                println!("exists {}", object.relative_path.display());
                 continue;
             }
 
@@ -115,8 +121,11 @@ fn run(opts: &Opts) -> io::Result<()> {
                     BadCopy::new(object.absolute_path, destination),
                 ));
             }
+            
+            println!("copied {}", object.relative_path.display());
         }
     }
 
     Ok(())
+
 }
